@@ -91,9 +91,9 @@ def get_cosmetic_problems(buffer, conf, filepath):
                 if len(rules) == 0:
                     self.rules = self.all_rules.copy()
                 else:
-                    for id in rules:
-                        if id in self.all_rules:
-                            self.rules.add(id)
+                    for rule_id in rules:
+                        if rule_id in self.all_rules:
+                            self.rules.add(rule_id)
 
             elif ENABLE_RULE_PATTERN.match(comment):
                 items = comment[17:].rstrip().split(' ')
@@ -101,8 +101,8 @@ def get_cosmetic_problems(buffer, conf, filepath):
                 if len(rules) == 0:
                     self.rules.clear()
                 else:
-                    for id in rules:
-                        self.rules.discard(id)
+                    for rule_id in rules:
+                        self.rules.discard(rule_id)
 
         def is_disabled_by_directive(self, problem):
             return problem.rule in self.rules
@@ -117,9 +117,9 @@ def get_cosmetic_problems(buffer, conf, filepath):
                 if len(rules) == 0:
                     self.rules = self.all_rules.copy()
                 else:
-                    for id in rules:
-                        if id in self.all_rules:
-                            self.rules.add(id)
+                    for rule_id in rules:
+                        if rule_id in self.all_rules:
+                            self.rules.add(rule_id)
 
     # Use a cache to store problems and flush it only when an end of line is
     # found. This allows the use of yamllint directive to disable some rules on
@@ -214,22 +214,23 @@ def _run(buffer, conf, filepath):
         yield syntax_error
 
 
-def run(input, conf, filepath=None):
+def run(input_object, conf, filepath=None):
     """Lints a YAML source.
-
-    Returns a generator of LintProblem objects.
 
     :param input: buffer, string or stream to read from
     :param conf: yamllint configuration object
+    :param filepath: path to the file being linted (optional)
+    :return: generator yielding LintProblem instances
+    :raises TypeError: if input_object is not a string or a stream
     """
     if filepath is not None and conf.is_file_ignored(filepath):
         return ()
 
-    if isinstance(input, (bytes, str)):
-        return _run(input, conf, filepath)
-    elif isinstance(input, io.IOBase):
+    if isinstance(input_object, (bytes, str)):
+        return _run(input_object, conf, filepath)
+    elif isinstance(input_object, io.IOBase):
         # We need to have everything in memory to parse correctly
-        content = input.read()
+        content = input_object.read()
         return _run(content, conf, filepath)
     else:
         raise TypeError('input should be a string or a stream')

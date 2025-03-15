@@ -20,8 +20,7 @@ import tempfile
 import unittest
 from io import StringIO
 
-from tests.common import build_temp_workspace, RunContext
-
+from tests.common import RunContext, build_temp_workspace
 from yamllint import cli, config
 from yamllint.config import YamlLintConfigError
 

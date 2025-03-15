@@ -13,17 +13,20 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# TODO(AS): Windows test runner in github, fix various OSError: [WinError 1314] A required privilege is not held by the client
+
 import locale
 import os
-import pty
+import sys
+if sys.platform != "win32":
+    import pty
 import shutil
 import sys
 import tempfile
 import unittest
 from io import StringIO
 
-from tests.common import build_temp_workspace, RunContext, temp_workspace
-
+from tests.common import RunContext, build_temp_workspace, temp_workspace
 from yamllint import cli, config
 
 
@@ -494,36 +497,37 @@ class CommandLineTestCase(unittest.TestCase):
             f'(new-line-at-end-of-file)\n'
             f'\n'))
 
-    def test_run_default_format_output_in_tty(self):
-        path = os.path.join(self.wd, 'a.yaml')
+    if sys.platform != "win32":
+        def test_run_default_format_output_in_tty(self):
+            path = os.path.join(self.wd, 'a.yaml')
 
-        # Create a pseudo-TTY and redirect stdout to it
-        master, slave = pty.openpty()
-        sys.stdout = os.fdopen(slave, 'w')
+            # Create a pseudo-TTY and redirect stdout to it
+            master, slave = pty.openpty()
+            sys.stdout = os.fdopen(slave, 'w')
 
-        with self.assertRaises(SystemExit) as ctx:
-            cli.run((path, ))
-        sys.stdout.flush()
+            with self.assertRaises(SystemExit) as ctx:
+                cli.run((path, ))
+            sys.stdout.flush()
 
-        self.assertEqual(ctx.exception.code, 1)
+            self.assertEqual(ctx.exception.code, 1)
 
-        # Read output from TTY
-        output = os.fdopen(master, 'r')
-        os.set_blocking(master, False)
+            # Read output from TTY
+            output = os.fdopen(master, 'r')
+            os.set_blocking(master, False)
 
-        out = output.read().replace('\r\n', '\n')
+            out = output.read().replace('\r\n', '\n')
 
-        sys.stdout.close()
-        output.close()
+            sys.stdout.close()
+            output.close()
 
-        self.assertEqual(out, (
-            f'\033[4m{path}\033[0m\n'
-            f'  \033[2m2:4\033[0m       \033[31merror\033[0m    '
-            f'trailing spaces  \033[2m(trailing-spaces)\033[0m\n'
-            f'  \033[2m3:4\033[0m       \033[31merror\033[0m    '
-            f'no new line character at the end of file  '
-            f'\033[2m(new-line-at-end-of-file)\033[0m\n'
-            f'\n'))
+            self.assertEqual(out, (
+                f'\033[4m{path}\033[0m\n'
+                f'  \033[2m2:4\033[0m       \033[31merror\033[0m    '
+                f'trailing spaces  \033[2m(trailing-spaces)\033[0m\n'
+                f'  \033[2m3:4\033[0m       \033[31merror\033[0m    '
+                f'no new line character at the end of file  '
+                f'\033[2m(new-line-at-end-of-file)\033[0m\n'
+                f'\n'))
 
     def test_run_default_format_output_without_tty(self):
         path = os.path.join(self.wd, 'a.yaml')

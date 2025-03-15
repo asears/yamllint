@@ -14,7 +14,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import fileinput
-import os.path
+from pathlib import Path
 
 import pathspec
 import yaml
@@ -38,8 +38,7 @@ class YamlLintConfig:
         self.locale = None
 
         if file is not None:
-            with open(file) as f:
-                content = f.read()
+            content = Path(file).read_text(encoding='utf-8')
 
         self.parse(content)
         self.validate()
@@ -48,10 +47,10 @@ class YamlLintConfig:
         return self.ignore and self.ignore.match_file(filepath)
 
     def is_yaml_file(self, filepath):
-        return self.yaml_files.match_file(os.path.basename(filepath))
+        return self.yaml_files.match_file(Path(filepath).name)
 
     def enabled_rules(self, filepath):
-        return [yamllint.rules.get(id) for id, val in self.rules.items()
+        return [yamllint.rules.get(rule_id) for rule_id, val in self.rules.items()
                 if val is not False and (
                     filepath is None or 'ignore' not in val or
                     not val['ignore'].match_file(filepath))]
@@ -139,13 +138,13 @@ class YamlLintConfig:
             self.locale = conf['locale']
 
     def validate(self):
-        for id in self.rules:
+        for rule_id in self.rules:
             try:
-                rule = yamllint.rules.get(id)
+                rule = yamllint.rules.get(rule_id)
             except Exception as e:
                 raise YamlLintConfigError(f'invalid config: {e}') from e
 
-            self.rules[id] = validate_rule_conf(rule, self.rules[id])
+            self.rules[rule_id] = validate_rule_conf(rule, self.rules[rule_id])
 
 
 def validate_rule_conf(rule, conf):
@@ -238,10 +237,9 @@ def validate_rule_conf(rule, conf):
 def get_extended_config_file(name):
     # Is it a standard conf shipped with yamllint...
     if '/' not in name:
-        std_conf = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                'conf', f'{name}.yaml')
+        std_conf = Path(__file__).resolve().parent / 'conf' / f'{name}.yaml'
 
-        if os.path.isfile(std_conf):
+        if std_conf.is_file():
             return std_conf
 
     # or a custom conf on filesystem?

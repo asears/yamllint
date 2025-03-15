@@ -14,7 +14,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from tests.common import RuleTestCase
-
 from yamllint.parser import Comment, token_or_comment_generator
 from yamllint.rules.indentation import check
 

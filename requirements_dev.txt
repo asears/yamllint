@@ -1,0 +1,19 @@
+# yamllint
+pyyaml
+pathspec
+
+# windows pseudo-terminal
+colorama  # pywinpty
+
+# flake8 replacement
+ruff
+
+# pip replacement
+uv
+
+# unittest replacement
+pytest
+pytest-cov
+pytest-xdist
+pytest-mock
+pytest-sugar

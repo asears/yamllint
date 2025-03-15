@@ -14,12 +14,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import contextlib
-from io import StringIO
 import os
 import shutil
 import sys
 import tempfile
 import unittest
+from io import StringIO
+from pathlib import Path
 
 import yaml
 
@@ -84,20 +85,20 @@ class RunContext:
 
 
 def build_temp_workspace(files):
-    tempdir = tempfile.mkdtemp(prefix='yamllint-tests-')
+    tempdir = Path(tempfile.mkdtemp(prefix='yamllint-tests-'))
 
     for path, content in files.items():
-        path = os.path.join(tempdir, path).encode('utf-8')
-        if not os.path.exists(os.path.dirname(path)):
-            os.makedirs(os.path.dirname(path))
+        path = tempdir / Path(path)
+        if not path.parent.exists():
+            path.parent.mkdir(parents=True)
 
         if isinstance(content, list):
-            os.mkdir(path)
+            path.mkdir()
         elif isinstance(content, str) and content.startswith('symlink://'):
-            os.symlink(content[10:], path)
+            path.symlink_to(content[10:])
         else:
             mode = 'wb' if isinstance(content, bytes) else 'w'
-            with open(path, mode) as f:
+            with path.open(mode) as f:
                 f.write(content)
 
     return tempdir
@@ -106,7 +107,7 @@ def build_temp_workspace(files):
 @contextlib.contextmanager
 def temp_workspace(files):
     """Provide a temporary workspace that is automatically cleaned up."""
-    backup_wd = os.getcwd()
+    backup_wd = Path.cwd()
     wd = build_temp_workspace(files)
 
     try:
