@@ -24,6 +24,7 @@ jobs:
         uses: astral-sh/setup-uv@v5
         with:
           version: "latest"
+          python-version: "3.9"
       - run:
           uv pip install flake8 flake8-import-order sphinx sphinx_rtd_theme
           rstcheck[sphinx] doc8
