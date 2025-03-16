@@ -13,23 +13,49 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from collections.abc import Iterator
+from typing import Any
+
 import yaml
 
 
 class Line:
-    def __init__(self, line_no, buffer, start, end):
+    def __init__(self, line_no: int, buffer: str, start: int, end: int) -> None:
+        """
+        Initialize a Line.
+
+        :param line_no: The line number.
+        :param buffer: The complete text buffer.
+        :param start: The starting index of the line.
+        :param end: The ending index of the line.
+        """
         self.line_no = line_no
         self.start = start
         self.end = end
         self.buffer = buffer
 
     @property
-    def content(self):
+    def content(self) -> str:
+        """
+        Get the content of the line.
+
+        :return: The substring representing the line content.
+        """
         return self.buffer[self.start : self.end]
 
 
 class Token:
-    def __init__(self, line_no, curr, prev, next, nextnext):
+    def __init__(self, line_no: int, curr: yaml.Token, prev: yaml.Token | None = None,
+                 next: yaml.Token | None = None, nextnext: yaml.Token | None = None) -> None:
+        """
+        Initialize a Token.
+
+        :param line_no: The line number of the token.
+        :param curr: The current token.
+        :param prev: The previous token.
+        :param next: The next token.
+        :param nextnext: The token following the next token.
+        """
         self.line_no = line_no
         self.curr = curr
         self.prev = prev
@@ -40,14 +66,25 @@ class Token:
 class Comment:
     def __init__(
         self,
-        line_no,
-        column_no,
-        buffer,
-        pointer,
-        token_before=None,
-        token_after=None,
-        comment_before=None,
-    ):
+        line_no: int,
+        column_no: int,
+        buffer: str,
+        pointer: int,
+        token_before: yaml.Token | None = None,
+        token_after: yaml.Token | None = None,
+        comment_before: Any | None = None,
+    ) -> None:
+        """
+        Initialize a Comment.
+
+        :param line_no: The line number where the comment appears.
+        :param column_no: The column number where the comment starts.
+        :param buffer: The full text buffer.
+        :param pointer: The position in the buffer where the comment starts.
+        :param token_before: The token immediately before the comment.
+        :param token_after: The token immediately after the comment.
+        :param comment_before: The preceding comment, if any.
+        """
         self.line_no = line_no
         self.column_no = column_no
         self.buffer = buffer
@@ -56,7 +93,12 @@ class Comment:
         self.token_after = token_after
         self.comment_before = comment_before
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """
+        Return the string representation of the comment.
+
+        :return: The comment as a string.
+        """
         end = self.buffer.find('\n', self.pointer)
         if end == -1:
             end = self.buffer.find('\0', self.pointer)
@@ -64,7 +106,13 @@ class Comment:
             return self.buffer[self.pointer : end]
         return self.buffer[self.pointer :]
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
+        """
+        Check equality with another Comment instance.
+
+        :param other: The object to compare.
+        :return: True if equal, False otherwise.
+        """
         return (
             isinstance(other, Comment)
             and self.line_no == other.line_no
@@ -72,7 +120,12 @@ class Comment:
             and str(self) == str(other)
         )
 
-    def is_inline(self):
+    def is_inline(self) -> bool:
+        """
+        Determine if the comment is inline (associated with a token).
+
+        :return: True if inline, False otherwise.
+        """
         return (
             not isinstance(self.token_before, yaml.StreamStartToken)
             and self.line_no == self.token_before.end_mark.line + 1
@@ -82,7 +135,13 @@ class Comment:
         )
 
 
-def line_generator(buffer):
+def line_generator(buffer: str) -> Iterator[Line]:
+    """
+    Yield a Line instance for each line in the buffer.
+
+    :param buffer: The complete text buffer.
+    :yield: A Line representing each line.
+    """
     line_no = 1
     cur_line = 0
     next_line = buffer.find('\n')
@@ -98,15 +157,13 @@ def line_generator(buffer):
     yield Line(line_no, buffer, start=cur_line, end=len(buffer))
 
 
-def comments_between_tokens(token1, token2):
-    """Find all comments between two tokens.
+def comments_between_tokens(token1: yaml.Token, token2: yaml.Token | None) -> Iterator[Comment]:
+    """
+    Yield comments found between two tokens.
 
-    Args:
-        token1: The first token.
-        token2: The second token.
-
-    Yields:
-        Comment: The comments between the two tokens.
+    :param token1: The first token.
+    :param token2: The second token; if None, process to the end of buffer.
+    :yield: Comments found between token1 and token2.
     """
     if token2 is None:
         buf = token1.end_mark.buffer[token1.end_mark.pointer :]
@@ -147,7 +204,13 @@ def comments_between_tokens(token1, token2):
         column_no = 1
 
 
-def token_or_comment_generator(buffer):
+def token_or_comment_generator(buffer: str) -> Iterator[Token | Comment]:
+    """
+    Yield tokens and their associated comments from the buffer.
+
+    :param buffer: The text buffer.
+    :yield: Token or Comment instances.
+    """
     yaml_loader = yaml.BaseLoader(buffer)
 
     try:
@@ -176,8 +239,13 @@ def token_or_comment_generator(buffer):
         pass
 
 
-def token_or_comment_or_line_generator(buffer):
-    """Generator that mixes tokens and lines, ordering them by line number."""
+def token_or_comment_or_line_generator(buffer: str) -> Iterator[Token | Comment | Line]:
+    """
+    Yield tokens, comments, and lines ordered by their line numbers.
+
+    :param buffer: The text buffer.
+    :yield: A Token, Comment, or Line instance.
+    """
     tok_or_com_gen = token_or_comment_generator(buffer)
     line_gen = line_generator(buffer)
 

@@ -19,11 +19,12 @@ except ImportError:
         sys.exit('Either tomllib or tomli must be installed')
 
 from pathlib import Path
+from typing import Any
 
 import yaml
 
 
-def load_pyproject_config(pyproject_path='pyproject.toml'):
+def load_pyproject_config(pyproject_path: str = 'pyproject.toml') -> str:
     """
     Load yamllint configuration from the specified pyproject.toml file.
 
@@ -53,7 +54,16 @@ def load_pyproject_config(pyproject_path='pyproject.toml'):
 
 class TomlConfigLoader:
     @staticmethod
-    def load(file):
+    def load(file: Any) -> str:
+        """
+        Load yamllint configuration from the given pyproject.toml file.
+
+        :param file: A file object or a path-like object corresponding to pyproject.toml.
+        :type file: Any
+        :return: YAML configuration string derived from the [tool.yamllint] section.
+        :rtype: str
+        :raises ValueError: if file is not a pyproject.toml or missing [tool.yamllint] section.
+        """
         if not str(file).endswith('pyproject.toml'):
             raise ValueError('File is not a pyproject.toml')
 

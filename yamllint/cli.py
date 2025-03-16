@@ -13,19 +13,31 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+"""A linter for YAML files."""
 import argparse
 import locale
 import os
 import platform
 import sys
 from pathlib import Path
+from typing import Any
 
 from yamllint import APP_DESCRIPTION, APP_NAME, APP_VERSION, linter
 from yamllint.config import YamlLintConfig, YamlLintConfigError
 from yamllint.linter import PROBLEM_LEVELS
 
 
-def find_files_recursively(items, conf):
+def find_files_recursively(items: list, conf: Any) -> Any:
+    """Find files recursively in the given items.
+    
+    :param items: The items to search for files
+    :type items: list
+    :param conf: The YamlLint configuration
+    :type conf: YamlLintConfig
+    
+    :return: The found files
+    :rtype: str
+    """
     for item in items:
         item_path = Path(item)
         if item_path.is_dir():

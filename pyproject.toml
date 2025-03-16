@@ -115,11 +115,22 @@ ignore = [
     # S101 - use of assert
     "S101",
     # W293 - blank line contains whitespace
-    # RUF100 - unused noqa
-    # E501 - line too long
     "W293",
+    # RUF100 - unused noqa
     "RUF100",
+    # E501 - line too long
     "E501",
+    # Prefer single quotes
+    "Q000",
+    # Avoid long exception messages
+    "TRY003",
+    # Exception assign variable first
+    "EM101",
+    # docstrings
+    "D205",
+    "D212",
+    "D301",
+    "D103",
 ]
 
 # Allow fix for all enabled rules (when `--fix`) is provided.
@@ -133,6 +144,10 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 "test_module.py" = ["S603"]
 "yamllint/rules/quoted_strings.py" = ["S105"]
 "yamllint/rules/line_length.py" = ["UP031"]
+"yamllint/rules/*.py" = ["D"]
+"tests/*.py" = ["D"]
+"docs/conf.py" = ["D"]
+"setup.py" = ["D"]
 
 [tool.ruff.format]
 # Unlike Black, use single quotes for strings.

@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+"""Configuration handling for yamllint."""
 import fileinput
 from pathlib import Path
 

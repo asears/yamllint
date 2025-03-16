@@ -13,8 +13,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+"""Linter."""
 import io
 import re
+from collections.abc import Iterator
+from typing import Any
 
 import yaml
 
@@ -34,9 +37,19 @@ ENABLE_RULE_PATTERN = re.compile(r'^# yamllint enable( rule:\S+)*\s*$')
 
 
 class LintProblem:
-    """Represents a linting problem found by yamllint."""
+    """Represents a linting problem found by yamllint.
 
-    def __init__(self, line, column, desc='<no description>', rule=None):
+    :param line: Line on which the problem was found (starting at 1)
+    :type line: int
+    :param column: Column on which the problem was found (starting at 1)
+    :type column: int
+    :param desc: Human-readable description of the problem, defaults to '<no description>'
+    :type desc: str
+    :param rule: Identifier of the rule that detected the problem, defaults to None
+    :type rule: Optional[str]
+    """
+
+    def __init__(self, line: int, column: int, desc: str = '<no description>', rule: Any = None) -> None:
         #: Line on which the problem was found (starting at 1)
         self.line = line
         #: Column on which the problem was found (starting at 1)
@@ -48,28 +61,39 @@ class LintProblem:
         self.level = None
 
     @property
-    def message(self):
+    def message(self) -> str:
         if self.rule is not None:
             return f'{self.desc} ({self.rule})'
         return self.desc
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         return (
             self.line == other.line
             and self.column == other.column
             and self.rule == other.rule
         )
 
-    def __lt__(self, other):
+    def __lt__(self, other: Any) -> bool:
         return self.line < other.line or (
             self.line == other.line and self.column < other.column
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'{self.line}:{self.column}: {self.message}'
 
 
-def get_cosmetic_problems(buffer, conf, filepath):
+def get_cosmetic_problems(buffer: Any, conf: Any, filepath: str) -> Iterator[LintProblem]:
+    """Generate cosmetic linting problems from the YAML buffer.
+
+    :param buffer: Input YAML content.
+    :type buffer: Any
+    :param conf: Configuration object with linting rules.
+    :type conf: Any
+    :param filepath: Path to the file being linted.
+    :type filepath: str
+    :yield: LintProblem instances for detected issues.
+    :rtype: Iterator[LintProblem]
+    """
     rules = conf.enabled_rules(filepath)
 
     # Split token rules from line rules
@@ -183,7 +207,14 @@ def get_cosmetic_problems(buffer, conf, filepath):
             cache = []
 
 
-def get_syntax_error(buffer):
+def get_syntax_error(buffer: Any) -> Any | None:
+    """Detect and return a syntax error in the YAML content.
+
+    :param buffer: Input YAML content.
+    :type buffer: Any
+    :return: A LintProblem for the syntax error or None if no syntax error exists.
+    :rtype: Optional[LintProblem]
+    """
     try:
         list(yaml.parse(buffer, Loader=yaml.BaseLoader))
     except yaml.error.MarkedYAMLError as e:
@@ -196,7 +227,18 @@ def get_syntax_error(buffer):
         return problem
 
 
-def _run(buffer, conf, filepath):
+def _run(buffer: Any, conf: Any, filepath: str) -> Iterator[LintProblem]:
+    """Internal function to run linting on the buffer and yield problems.
+
+    :param buffer: Input YAML content.
+    :type buffer: Any
+    :param conf: Configuration object with linting rules.
+    :type conf: Any
+    :param filepath: Path to the file being linted.
+    :type filepath: str
+    :yield: LintProblem instances found in the file.
+    :rtype: Iterator[LintProblem]
+    """
     assert hasattr(buffer, '__getitem__'), (
         '_run() argument must be a buffer, not a stream'
     )
@@ -230,14 +272,18 @@ def _run(buffer, conf, filepath):
         yield syntax_error
 
 
-def run(input_object, conf, filepath=None):
+def run(input_object: Any, conf: Any, filepath: str | None = None) -> Iterator[LintProblem]:
     """Lints a YAML source.
 
-    :param input: buffer, string or stream to read from
-    :param conf: yamllint configuration object
-    :param filepath: path to the file being linted (optional)
-    :return: generator yielding LintProblem instances
-    :raises TypeError: if input_object is not a string or a stream
+    :param input_object: Buffer, string or stream to read from.
+    :type input_object: Any
+    :param conf: yamllint configuration object.
+    :type conf: Any
+    :param filepath: Path to the file being linted (optional).
+    :type filepath: Optional[str]
+    :return: Generator yielding LintProblem instances.
+    :rtype: Iterator[LintProblem]
+    :raises TypeError: if input_object is not a string or a stream.
     """
     if filepath is not None and conf.is_file_ignored(filepath):
         return ()
