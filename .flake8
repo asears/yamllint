@@ -1,4 +1,5 @@
 [flake8]
 import-order-style = pep8
 application-import-names = yamllint
-ignore = W503,W504
+ignore = W503,W504,E501,W293,E302
+exclude = .venv,build
