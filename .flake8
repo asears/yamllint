@@ -1,5 +1,4 @@
-; Deprecated: Using [tool.ruff] configuration in pyproject.toml
-; [flake8]
-; import-order-style = pep8
-; application-import-names = yamllint
-; ignore = W503,W504
+[flake8]
+import-order-style = pep8
+application-import-names = yamllint
+ignore = W503,W504
