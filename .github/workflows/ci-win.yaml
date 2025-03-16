@@ -28,7 +28,7 @@ jobs:
       - run:
           uv pip install flake8 flake8-import-order sphinx sphinx_rtd_theme pytest pytest-cov
           rstcheck[sphinx] doc8
-      - run: uv pip install . --dev --win
+      - run: uv pip install .
       - run: flake8 .
       - run: doc8 $(git ls-files '*.rst')
       - run: rstcheck --ignore-directives automodule $(git ls-files '*.rst')
@@ -64,7 +64,7 @@ jobs:
       - name: Append GitHub Actions system path
         run: echo "$HOME/.local/bin" >> $GITHUB_PATH
       - run: uv pip install coverage pytest pytest-cov
-      - run: uv pip install . --dev --win
+      - run: uv pip install .
       # https://github.com/AndreMiras/coveralls-python-action/issues/18
       - run: echo -e "[run]\nrelative_files = True" > .coveragerc
       - run: uv pip install pytest pytest-cov
