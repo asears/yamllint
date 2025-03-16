@@ -81,7 +81,7 @@ class Format:
         Generates a GitHub Actions formatted annotation string for a given linter problem.
     """
     @staticmethod
-    def parsable(problem: linter.Problem, filename: str) -> str:
+    def parsable(problem: Any, filename: str) -> str:
         """
         Generates a parsable formatted string for a given linter problem.
 
@@ -96,7 +96,7 @@ class Format:
         )
 
     @staticmethod
-    def standard(problem: linter.Problem) -> str:
+    def standard(problem: Any) -> str:
         """
         Generates a standard formatted string for a given linter problem.
 
@@ -115,7 +115,7 @@ class Format:
         return line
 
     @staticmethod
-    def standard_color(problem: linter.Problem) -> str:
+    def standard_color(problem: Any) -> str:
         """
         Generates a colored formatted string for a given linter problem.
 
@@ -136,7 +136,7 @@ class Format:
             line += f'  \033[2m({problem.rule})\033[0m'
         return line
     @staticmethod
-    def github(problem: linter.Problem, filename: str) -> str:
+    def github(problem: Any, filename: str) -> str:
         """
         Generates a GitHub Actions formatted annotation string for a given linter problem.
 
@@ -231,9 +231,12 @@ def find_project_config_filepath(path: Path = Path()) -> str:
         filepath = path / filename
         if filepath.is_file():
             return str(filepath)
-
-    if path.resolve() == Path.home().resolve():
-        return None
+    try:
+        if path.resolve() == Path.home().resolve():
+            return None
+    except RuntimeError:
+        # In case of a RuntimeError, the user is likely running in a restricted environment
+        pass
     if path.resolve() == path.parent.resolve():
         return None
     return find_project_config_filepath(path=path.parent)
@@ -250,11 +253,15 @@ def get_user_global_config() -> Path:
     elif 'XDG_CONFIG_HOME' in os.environ:
         user_global_config = Path(os.environ['XDG_CONFIG_HOME']) / 'yamllint' / 'config'
     else:
-        user_global_config = Path('~/.config/yamllint/config').expanduser()
+        try:
+            user_global_config = Path(os.path.expanduser('~/.config/yamllint/config'))
+        except RuntimeError:
+            # In case of a RuntimeError, the user is likely running in a restricted environment
+            user_global_config = None
     return user_global_config
 
 def load_yaml_config(
-    args: argparse.Namespace,
+    args: Any,
     user_global_config: Path,
     project_config_filepath: str,
 ) -> YamlLintConfig:
@@ -305,7 +312,7 @@ def lint_stdin(conf: YamlLintConfig) -> list:
     return problems
 
 
-def get_linter_exit_status(args: argparse.Namespace, max_level: int) -> int:
+def get_linter_exit_status(args: Any, max_level: int) -> int:
     """Determine the exit status for the linter based on the highest problem level.
 
     :param args: Parsed command line arguments
@@ -324,7 +331,7 @@ def get_linter_exit_status(args: argparse.Namespace, max_level: int) -> int:
         return_code = 0
     return return_code
 
-def list_files_only(args: argparse.Namespace, conf: YamlLintConfig) -> None:
+def list_files_only(args: Any, conf: YamlLintConfig) -> None:
     """List files to lint and exit.
 
     :param args: Parsed command line arguments

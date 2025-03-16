@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
 import sys
 from io import StringIO
 from pathlib import Path
@@ -113,7 +114,13 @@ def build_temp_workspace(files, base_path):
         if isinstance(content, list):
             path.mkdir()
         elif isinstance(content, str) and content.startswith('symlink://'):
-            path.symlink_to(content[10:])
+            try:
+                path.symlink_to(content[10:])
+            except OSError as e:
+                if e.winerror == 1314:  # ERROR_PRIVILEGE_NOT_HELD
+                    pytest.skip("A required privilege is not held by the client")
+                else:
+                    raise
         else:
             mode = 'wb' if isinstance(content, bytes) else 'w'
             with path.open(mode) as f:
@@ -132,8 +139,8 @@ def temp_workspace(tmp_path):
     backup_wd = Path.cwd()
     workspace = tmp_path
     Path(workspace).mkdir(parents=True, exist_ok=True)
-    Path.chdir(workspace)
+    os.chdir(workspace)
     try:
         yield workspace
     finally:
-        Path.chdir(backup_wd)
+        os.chdir(backup_wd)

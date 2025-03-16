@@ -82,7 +82,7 @@ class LintProblem:
         return f'{self.line}:{self.column}: {self.message}'
 
 
-def get_cosmetic_problems(buffer: Any, conf: Any, filepath: str) -> Iterator[LintProblem]:
+def get_cosmetic_problems(buffer: Any, conf: Any, filepath: str) -> Any:
     """Generate cosmetic linting problems from the YAML buffer.
 
     :param buffer: Input YAML content.
