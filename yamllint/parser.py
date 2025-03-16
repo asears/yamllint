@@ -45,8 +45,8 @@ class Line:
 
 
 class Token:
-    def __init__(self, line_no: int, curr: yaml.Token, prev: yaml.Token | None = None,
-                 next: yaml.Token | None = None, nextnext: yaml.Token | None = None) -> None:
+    def __init__(self, line_no: int, curr: Any, prev: Any | None = None,
+                 next: Any | None = None, nextnext: Any | None = None) -> None:
         """
         Initialize a Token.
 
