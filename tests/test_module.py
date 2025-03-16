@@ -1,6 +1,7 @@
 import re
 import subprocess
 import sys
+
 import pytest
 
 PYTHON = sys.executable or 'python'

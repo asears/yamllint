@@ -158,7 +158,13 @@ def test_token_or_comment_or_line_generator():
     e = list(token_or_comment_or_line_generator('---\n'
                                                   'k: v  # k=v\n'))
     assert len(e) == 13
-    from yaml import StreamStartToken, DocumentStartToken, BlockMappingStartToken, KeyToken, ValueToken
+    from yaml import (
+        BlockMappingStartToken,
+        DocumentStartToken,
+        KeyToken,
+        StreamStartToken,
+        ValueToken,
+    )
     assert isinstance(e[0], Token)
     assert isinstance(e[0].curr, StreamStartToken)
     assert isinstance(e[1], Token)

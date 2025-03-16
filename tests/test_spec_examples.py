@@ -13,8 +13,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from tests.common import RuleTestCase
 from pathlib import Path
+
+from tests.common import RuleTestCase
 
 # This file checks examples from YAML 1.2 specification [1] against yamllint.
 #

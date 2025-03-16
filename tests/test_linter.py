@@ -1,7 +1,10 @@
 import io
+
 import pytest
+
 from yamllint import linter
 from yamllint.config import YamlLintConfig
+
 
 def fake_config():
     """Return a default fake configuration for linting.

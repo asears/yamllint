@@ -1,0 +1,72 @@
+[tool.yamllint]
+# ...existing content converted for pyproject.toml...
+yaml-files = ["*.yaml", "*.yml", ".yamllint"]
+
+[tool.yamllint.rules.anchors]
+level = "enable"
+
+[tool.yamllint.rules.braces]
+level = "enable"
+
+[tool.yamllint.rules.brackets]
+level = "enable"
+
+[tool.yamllint.rules.colons]
+level = "enable"
+
+[tool.yamllint.rules.commas]
+level = "enable"
+
+[tool.yamllint.rules.comments]
+level = "warning"
+
+[tool.yamllint.rules.comments-indentation]
+level = "warning"
+
+[tool.yamllint.rules.document-end]
+level = "disable"
+
+[tool.yamllint.rules.document-start]
+level = "warning"
+
+[tool.yamllint.rules.empty-lines]
+level = "enable"
+
+[tool.yamllint.rules.empty-values]
+level = "disable"
+
+[tool.yamllint.rules.float-values]
+level = "disable"
+
+[tool.yamllint.rules.hyphens]
+level = "enable"
+
+[tool.yamllint.rules.indentation]
+level = "enable"
+
+[tool.yamllint.rules.key-duplicates]
+level = "enable"
+
+[tool.yamllint.rules.key-ordering]
+level = "disable"
+
+[tool.yamllint.rules.line-length]
+level = "enable"
+
+[tool.yamllint.rules.new-line-at-end-of-file]
+level = "enable"
+
+[tool.yamllint.rules.new-lines]
+level = "enable"
+
+[tool.yamllint.rules.octal-values]
+level = "disable"
+
+[tool.yamllint.rules.quoted-strings]
+level = "disable"
+
+[tool.yamllint.rules.trailing-spaces]
+level = "enable"
+
+[tool.yamllint.rules.truthy]
+level = "warning"

@@ -16,10 +16,12 @@
 import os
 import shutil
 
+import pytest
+
 from tests.common import RunContext, build_temp_workspace
 from yamllint import cli, config
 from yamllint.config import YamlLintConfigError
-import pytest
+
 
 @pytest.fixture
 def temp_workspace_ignore():

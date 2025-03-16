@@ -1,0 +1,42 @@
+[tool.yamllint]
+extends = "default"
+
+[tool.yamllint.rules.braces]
+level = "warning"
+max-spaces-inside = 1
+
+[tool.yamllint.rules.brackets]
+level = "warning"
+max-spaces-inside = 1
+
+[tool.yamllint.rules.colons]
+level = "warning"
+
+[tool.yamllint.rules.commas]
+level = "warning"
+
+[tool.yamllint.rules.comments]
+level = "disable"
+
+[tool.yamllint.rules.comments-indentation]
+level = "disable"
+
+[tool.yamllint.rules.document-start]
+level = "disable"
+
+[tool.yamllint.rules.empty-lines]
+level = "warning"
+
+[tool.yamllint.rules.hyphens]
+level = "warning"
+
+[tool.yamllint.rules.indentation]
+level = "warning"
+indent-sequences = "consistent"
+
+[tool.yamllint.rules.line-length]
+level = "warning"
+allow-non-breakable-inline-mappings = true
+
+[tool.yamllint.rules.truthy]
+level = "disable"

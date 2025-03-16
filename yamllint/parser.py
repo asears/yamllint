@@ -57,9 +57,9 @@ class Comment:
         self.comment_before = comment_before
 
     def __str__(self):
-        end = self.buffer.find("\n", self.pointer)
+        end = self.buffer.find('\n', self.pointer)
         if end == -1:
-            end = self.buffer.find("\0", self.pointer)
+            end = self.buffer.find('\0', self.pointer)
         if end != -1:
             return self.buffer[self.pointer : end]
         return self.buffer[self.pointer :]
@@ -78,21 +78,21 @@ class Comment:
             and self.line_no == self.token_before.end_mark.line + 1
             and
             # sometimes token end marks are on the next line
-            self.buffer[self.token_before.end_mark.pointer - 1] != "\n"
+            self.buffer[self.token_before.end_mark.pointer - 1] != '\n'
         )
 
 
 def line_generator(buffer):
     line_no = 1
     cur_line = 0
-    next_line = buffer.find("\n")
+    next_line = buffer.find('\n')
     while next_line != -1:
-        if next_line > 0 and buffer[next_line - 1] == "\r":
+        if next_line > 0 and buffer[next_line - 1] == '\r':
             yield Line(line_no, buffer, start=cur_line, end=next_line - 1)
         else:
             yield Line(line_no, buffer, start=cur_line, end=next_line)
         cur_line = next_line + 1
-        next_line = buffer.find("\n", cur_line)
+        next_line = buffer.find('\n', cur_line)
         line_no += 1
 
     yield Line(line_no, buffer, start=cur_line, end=len(buffer))
@@ -126,8 +126,8 @@ def comments_between_tokens(token1, token2):
     pointer = token1.end_mark.pointer
 
     comment_before = None
-    for line in buf.split("\n"):
-        pos = line.find("#")
+    for line in buf.split('\n'):
+        pos = line.find('#')
         if pos != -1:
             comment = Comment(
                 line_no,

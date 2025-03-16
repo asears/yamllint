@@ -15,6 +15,7 @@
 
 from yamllint import config
 
+
 def test_extend_on_object():
     """Test extending configuration on object.
     

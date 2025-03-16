@@ -18,6 +18,7 @@
 import locale
 import os
 import sys
+
 if sys.platform != "win32":
     import pty
 import shutil
@@ -48,7 +49,7 @@ def clean_env():
         'YAMLLINT_CONFIG_FILE',
         'XDG_CONFIG_HOME',
         'HOME',
-        'USERPROFILE', 
+        'USERPROFILE',
         'HOMEPATH',
         'HOMEDRIVE'
     )
@@ -72,7 +73,7 @@ def workspace(tmp_path):
         's/s/s/s/s/s/s/s/s/s/s/s/s/s/s/file.yaml': '---\nkey: value\n'
                                                     'key: other value\n',
         'empty-dir': [],
-        'symlinks/file-without-yaml-extension': '42\n', 
+        'symlinks/file-without-yaml-extension': '42\n',
         'symlinks/link.yaml': 'symlink://file-without-yaml-extension',
         'no-yaml.json': '---\nkey: value\n',
         'non-ascii/éçäγλνπ¥/utf-8': (
@@ -281,7 +282,7 @@ def test_run_with_config_file(workspace, run_cli):
     ctx = run_cli('-c', str(config_path), str(workspace / 'a.yaml'))
     assert ctx.returncode == 0
 
-    config_path.write_text('rules: {trailing-spaces: enable}') 
+    config_path.write_text('rules: {trailing-spaces: enable}')
     ctx = run_cli('-c', str(config_path), str(workspace / 'a.yaml'))
     assert ctx.returncode == 1
 

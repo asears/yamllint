@@ -1,5 +1,7 @@
 import pytest
+
 from tests.common import RuleTestCase
+
 
 @pytest.fixture
 def tester():

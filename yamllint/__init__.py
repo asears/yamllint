@@ -19,7 +19,6 @@ yamllint does not only check for syntax validity, but for weirdnesses like key
 repetition and cosmetic problems such as lines length, trailing spaces,
 indentation, etc."""
 
-
 APP_NAME = 'yamllint'
 APP_VERSION = '1.37.0'
 APP_DESCRIPTION = __doc__
