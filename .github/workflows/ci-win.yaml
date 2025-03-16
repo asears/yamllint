@@ -66,8 +66,8 @@ jobs:
       - run: uv pip install coverage pytest pytest-cov
       - run: uv pip install .
       # https://github.com/AndreMiras/coveralls-python-action/issues/18
-      - run: echo -e "[run]\nrelative_files = True" > .coveragerc
+      # - run: echo -e "[run]\nrelative_files = True" > .coveragerc
       - run: uv pip install pytest pytest-cov
       - run: pytest --cov=yamllint --cov-report=xml
-      - name: Coveralls
-        uses: AndreMiras/coveralls-python-action@develop
+      # - name: Coveralls
+      #   uses: AndreMiras/coveralls-python-action@develop
