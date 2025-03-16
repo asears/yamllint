@@ -17,11 +17,11 @@ classifiers = [
     "Topic :: Software Development :: Quality Assurance",
     "Topic :: Software Development :: Testing",
 ]
+dynamic = ["version"]
 dependencies = [
     "pathspec >= 0.5.3",
     "pyyaml",
 ]
-dynamic = ["version"]
 
 [project.optional-dependencies]
 dev = [
@@ -30,7 +30,16 @@ dev = [
     "flake8-import-order",
     "rstcheck[sphinx]",
     "sphinx",
+    "pytest",
+    "pytest-cov",
+    "pytest-xdist",
+    "pytest-mock",
+    "pytest-sugar",
+    "ruff",
+    "uv",
 ]
+
+win =  ["pywinpty", "colorama"]
 
 [project.scripts]
 yamllint = "yamllint.cli:run"
@@ -52,3 +61,7 @@ yamllint = ["conf/*.yaml"]
 
 [tool.setuptools.dynamic]
 version = {attr = "yamllint.__version__"}
+
+[tool.pytest.ini_options]
+addopts = ["-ra", "-q"]
+testpaths = ["tests"]

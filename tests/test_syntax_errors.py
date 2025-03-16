@@ -16,10 +16,15 @@
 from tests.common import RuleTestCase
 
 
-class YamlLintTestCase(RuleTestCase):
+class TestYamlLintSyntaxErrors(RuleTestCase):
     rule_id = None  # syntax error
 
     def test_syntax_errors(self):
+        """
+        Test YAML syntax errors.
+
+        :return: None
+        """
         self.check('---\n'
                    'this is not: valid: YAML\n', None, problem=(2, 19))
         self.check('---\n'

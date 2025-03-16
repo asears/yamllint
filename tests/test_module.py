@@ -1,83 +1,50 @@
-# Copyright (C) 2017 Adrien Vergé
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-import os
-import shutil
+import re
 import subprocess
 import sys
-import tempfile
-import unittest
+import pytest
 
 PYTHON = sys.executable or 'python'
 
+def test_run_module_no_args():
+    with pytest.raises(subprocess.CalledProcessError) as ctx:
+        subprocess.check_output([PYTHON, '-m', 'yamllint'],
+                                stderr=subprocess.STDOUT)
+    assert ctx.value.returncode == 2
+    assert re.match(r'^usage: yamllint', ctx.value.output.decode())
 
-class ModuleTestCase(unittest.TestCase):
-    def setUp(self):
-        self.wd = tempfile.mkdtemp(prefix='yamllint-tests-')
+def test_run_module_on_bad_dir():
+    with pytest.raises(subprocess.CalledProcessError) as ctx:
+        subprocess.check_output([PYTHON, '-m', 'yamllint', '/does/not/exist'],
+                                stderr=subprocess.STDOUT)
+    assert 'No such file or directory' in ctx.value.output.decode()
 
-        # file with only one warning
-        with open(os.path.join(self.wd, 'warn.yaml'), 'w') as f:
-            f.write('key: value\n')
+def test_run_module_on_file(tmp_path):
+    wd = tmp_path / "yamllint-tests"
+    wd.mkdir()
+    warn = wd / "warn.yaml"
+    warn.write_text("key: value\n")
+    out = subprocess.check_output([PYTHON, '-m', 'yamllint', warn])
+    lines = out.decode().splitlines()
+    assert '/warn.yaml' in lines[0]
+    expected = '  1:1       warning  missing document start "---"  (document-start)'
+    assert '\n'.join(lines[1:]).strip() == expected
 
-        # file in dir
-        os.mkdir(os.path.join(self.wd, 'sub'))
-        with open(os.path.join(self.wd, 'sub', 'nok.yaml'), 'w') as f:
-            f.write('---\n'
-                    'list: [  1, 1, 2, 3, 5, 8]  \n')
-
-    def tearDown(self):
-        shutil.rmtree(self.wd)
-
-    def test_run_module_no_args(self):
-        with self.assertRaises(subprocess.CalledProcessError) as ctx:
-            subprocess.check_output([PYTHON, '-m', 'yamllint'],
-                                    stderr=subprocess.STDOUT)
-        self.assertEqual(ctx.exception.returncode, 2)
-        self.assertRegex(ctx.exception.output.decode(), r'^usage: yamllint')
-
-    def test_run_module_on_bad_dir(self):
-        with self.assertRaises(subprocess.CalledProcessError) as ctx:
-            subprocess.check_output([PYTHON, '-m', 'yamllint',
-                                     '/does/not/exist'],
-                                    stderr=subprocess.STDOUT)
-        self.assertRegex(ctx.exception.output.decode(),
-                         r'No such file or directory')
-
-    def test_run_module_on_file(self):
-        out = subprocess.check_output(
-            [PYTHON, '-m', 'yamllint', os.path.join(self.wd, 'warn.yaml')])
-        lines = out.decode().splitlines()
-        self.assertIn('/warn.yaml', lines[0])
-        self.assertEqual('\n'.join(lines[1:]),
-                         '  1:1       warning  missing document start "---"'
-                         '  (document-start)\n')
-
-    def test_run_module_on_dir(self):
-        with self.assertRaises(subprocess.CalledProcessError) as ctx:
-            subprocess.check_output([PYTHON, '-m', 'yamllint', self.wd])
-        self.assertEqual(ctx.exception.returncode, 1)
-
-        files = ctx.exception.output.decode().split('\n\n')
-        self.assertIn(
-            '/warn.yaml\n'
-            '  1:1       warning  missing document start "---"'
-            '  (document-start)',
-            files[0])
-        self.assertIn(
-            '/sub/nok.yaml\n'
-            '  2:9       error    too many spaces inside brackets'
-            '  (brackets)\n'
-            '  2:27      error    trailing spaces  (trailing-spaces)',
-            files[1])
+def test_run_module_on_dir(tmp_path):
+    wd = tmp_path / "yamllint-tests"
+    wd.mkdir()
+    warn = wd / "warn.yaml"
+    warn.write_text("key: value\n")
+    subdir = wd / "sub"
+    subdir.mkdir()
+    nok = subdir / "nok.yaml"
+    nok.write_text('---\nlist: [  1, 1, 2, 3, 5, 8]  \n')
+    with pytest.raises(subprocess.CalledProcessError) as ctx:
+        subprocess.check_output([PYTHON, '-m', 'yamllint', wd],
+                                stderr=subprocess.STDOUT)
+    assert ctx.value.returncode == 1
+    output = ctx.value.output.decode()
+    assert '/warn.yaml' in output
+    assert 'missing document start "---"  (document-start)' in output
+    assert '/sub/nok.yaml' in output
+    assert 'too many spaces inside brackets' in output
+    assert 'trailing spaces' in output

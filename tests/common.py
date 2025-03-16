@@ -13,23 +13,25 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import contextlib
-import os
-import shutil
 import sys
-import tempfile
-import unittest
 from io import StringIO
 from pathlib import Path
 
+import pytest
 import yaml
 
 from yamllint import linter
 from yamllint.config import YamlLintConfig
 
 
-class RuleTestCase(unittest.TestCase):
+class RuleTestCase:
     def build_fake_config(self, conf):
+        """
+        Build a fake configuration.
+
+        :param conf: YAML configuration string or None.
+        :returns: A YamlLintConfig instance.
+        """
         if conf is None:
             conf = {}
         else:
@@ -39,6 +41,13 @@ class RuleTestCase(unittest.TestCase):
         return YamlLintConfig(yaml.safe_dump(conf))
 
     def check(self, source, conf, **kwargs):
+        """
+        Check YAML lint results against expected problems.
+
+        :param source: YAML content to lint.
+        :param conf: Configuration string.
+        :param kwargs: Expected problem details.
+        """
         expected_problems = []
         for key in kwargs:
             assert key.startswith('problem')
@@ -54,44 +63,53 @@ class RuleTestCase(unittest.TestCase):
         expected_problems.sort()
 
         real_problems = list(linter.run(source, self.build_fake_config(conf)))
-        self.assertEqual(real_problems, expected_problems)
+        assert real_problems == expected_problems
 
 
 class RunContext:
-    """Context manager for ``cli.run()`` to capture exit code and streams."""
-
-    def __init__(self, case):
+    """
+    Context manager for cli.run() to capture exit code and streams using pytest.
+    """
+    def __init__(self):
         self.stdout = self.stderr = None
-        self._raises_ctx = case.assertRaises(SystemExit)
 
     def __enter__(self):
-        self._raises_ctx.__enter__()
         self.old_sys_stdout = sys.stdout
         self.old_sys_stderr = sys.stderr
         sys.stdout = self.outstream = StringIO()
         sys.stderr = self.errstream = StringIO()
         return self
 
-    def __exit__(self, *exc_info):
+    def __exit__(self, exc_type, exc_val, exc_tb):
         self.stdout = self.outstream.getvalue()
         self.stderr = self.errstream.getvalue()
         sys.stdout = self.old_sys_stdout
         sys.stderr = self.old_sys_stderr
-        return self._raises_ctx.__exit__(*exc_info)
+        if exc_type is SystemExit:
+            self.returncode = exc_val.code
+            return True
+        return False
 
     @property
     def returncode(self):
-        return self._raises_ctx.exception.code
+        return self._returncode
+    @returncode.setter
+    def returncode(self, value):
+        self._returncode = value
 
 
-def build_temp_workspace(files):
-    tempdir = Path(tempfile.mkdtemp(prefix='yamllint-tests-'))
+def build_temp_workspace(files, base_path):
+    """
+    Build a temporary workspace within the given base directory.
 
-    for path, content in files.items():
-        path = tempdir / Path(path)
+    :param files: Dict mapping relative file paths to file content.
+    :param base_path: The base directory (pytest tmp_path).
+    :returns: The workspace path.
+    """
+    for rel_path, content in files.items():
+        path = base_path / Path(rel_path)
         if not path.parent.exists():
             path.parent.mkdir(parents=True)
-
         if isinstance(content, list):
             path.mkdir()
         elif isinstance(content, str) and content.startswith('symlink://'):
@@ -100,19 +118,22 @@ def build_temp_workspace(files):
             mode = 'wb' if isinstance(content, bytes) else 'w'
             with path.open(mode) as f:
                 f.write(content)
+    return base_path
 
-    return tempdir
 
+@pytest.fixture
+def temp_workspace(tmp_path):
+    """
+    Provide a temporary workspace using the pytest tmp_path fixture.
 
-@contextlib.contextmanager
-def temp_workspace(files):
-    """Provide a temporary workspace that is automatically cleaned up."""
+    Yields:
+        The workspace path.
+    """
     backup_wd = Path.cwd()
-    wd = build_temp_workspace(files)
-
+    workspace = tmp_path
+    Path(workspace).mkdir(parents=True, exist_ok=True)
+    Path.chdir(workspace)
     try:
-        os.chdir(wd)
-        yield
+        yield workspace
     finally:
-        os.chdir(backup_wd)
-        shutil.rmtree(wd)
+        Path.chdir(backup_wd)

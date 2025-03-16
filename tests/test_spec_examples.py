@@ -13,9 +13,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import os
-
 from tests.common import RuleTestCase
+from pathlib import Path
 
 # This file checks examples from YAML 1.2 specification [1] against yamllint.
 #
@@ -41,10 +40,6 @@ from tests.common import RuleTestCase
 #             with open(f'tests/yaml-1.2-spec-examples/{id}', 'w',
 #                       encoding='utf-8') as g:
 #                 g.write(text)
-
-
-class SpecificationTestCase(RuleTestCase):
-    rule_id = None
 
 
 conf_general = ('document-start: disable\n'
@@ -122,15 +117,8 @@ conf_overrides = {
     'example-10.9': 'truthy: disable\n',
 }
 
-files = os.listdir(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                'yaml-1.2-spec-examples'))
+files = [file.name for file in Path(__file__).resolve().parent.joinpath('yaml-1.2-spec-examples').iterdir()]
 assert len(files) == 132
-
-
-def _gen_test(buffer, conf):
-    def test(self):
-        self.check(buffer, conf)
-    return test
 
 
 # The following tests are blacklisted (i.e. will not be checked against
@@ -178,11 +166,14 @@ pyyaml_blacklist = (
     'example-9.5',
 )
 
+# Replace test generation
 for file in files:
     if file in pyyaml_blacklist:
         continue
 
-    with open('tests/yaml-1.2-spec-examples/' + file, encoding='utf-8') as f:
+    with Path('tests/yaml-1.2-spec-examples', file).open(encoding='utf-8') as f:
         conf = conf_general + conf_overrides.get(file, '')
-        setattr(SpecificationTestCase, 'test_' + file,
-                _gen_test(f.read(), conf))
+        contents = f.read()
+        def test_func(contents=contents, conf=conf):
+            RuleTestCase().check(contents, conf)
+        globals()['test_' + file] = test_func

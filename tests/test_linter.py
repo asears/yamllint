@@ -1,66 +1,60 @@
-# Copyright (C) 2016 Adrien Vergé
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
 import io
-import unittest
-
+import pytest
 from yamllint import linter
 from yamllint.config import YamlLintConfig
 
+def fake_config():
+    """Return a default fake configuration for linting.
 
-class LinterTestCase(unittest.TestCase):
-    def fake_config(self):
-        return YamlLintConfig('extends: default')
+    :return: YamlLintConfig instance
+    """
+    return YamlLintConfig('extends: default')
 
-    def test_run_on_string(self):
-        linter.run('test: document', self.fake_config())
+def test_run_on_string():
+    """Test run on a string input."""
+    linter.run('test: document', fake_config())
 
-    def test_run_on_bytes(self):
-        linter.run(b'test: document', self.fake_config())
+def test_run_on_bytes():
+    """Test run on bytes input."""
+    linter.run(b'test: document', fake_config())
 
-    def test_run_on_unicode(self):
-        linter.run('test: document', self.fake_config())
+def test_run_on_unicode():
+    """Test run on unicode input."""
+    linter.run('test: document', fake_config())
 
-    def test_run_on_stream(self):
-        linter.run(io.StringIO('hello'), self.fake_config())
+def test_run_on_stream():
+    """Test run on a stream input."""
+    linter.run(io.StringIO('hello'), fake_config())
 
-    def test_run_on_int(self):
-        self.assertRaises(TypeError, linter.run, 42, self.fake_config())
+def test_run_on_int():
+    """Test that passing an int raises a TypeError."""
+    with pytest.raises(TypeError):
+        linter.run(42, fake_config())
 
-    def test_run_on_list(self):
-        self.assertRaises(TypeError, linter.run,
-                          ['h', 'e', 'l', 'l', 'o'], self.fake_config())
+def test_run_on_list():
+    """Test that passing a list raises a TypeError."""
+    with pytest.raises(TypeError):
+        linter.run(['h', 'e', 'l', 'l', 'o'], fake_config())
 
-    def test_run_on_non_ascii_chars(self):
-        s = ('- hétérogénéité\n'
-             '# 19.99 €\n')
-        linter.run(s, self.fake_config())
-        linter.run(s.encode('utf-8'), self.fake_config())
-        linter.run(s.encode('iso-8859-15'), self.fake_config())
+def test_run_on_non_ascii_chars():
+    """Test run on strings containing non-ASCII characters."""
+    s = ('- hétérogénéité\n'
+         '# 19.99 €\n')
+    linter.run(s, fake_config())
+    linter.run(s.encode('utf-8'), fake_config())
+    linter.run(s.encode('iso-8859-15'), fake_config())
 
-        s = ('- お早う御座います。\n'
-             '# الأَبْجَدِيَّة العَرَبِيَّة\n')
-        linter.run(s, self.fake_config())
-        linter.run(s.encode('utf-8'), self.fake_config())
+    s = ('- お早う御座います。\n'
+         '# الأَبْجَدِيَّة العَرَبِيَّة\n')
+    linter.run(s, fake_config())
+    linter.run(s.encode('utf-8'), fake_config())
 
-    def test_linter_problem_repr_without_rule(self):
-        problem = linter.LintProblem(1, 2, 'problem')
+def test_linter_problem_repr_without_rule():
+    """Test the string representation of a LintProblem without a rule id."""
+    problem = linter.LintProblem(1, 2, 'problem')
+    assert str(problem) == '1:2: problem'
 
-        self.assertEqual(str(problem), '1:2: problem')
-
-    def test_linter_problem_repr_with_rule(self):
-        problem = linter.LintProblem(1, 2, 'problem', 'rule-id')
-
-        self.assertEqual(str(problem), '1:2: problem (rule-id)')
+def test_linter_problem_repr_with_rule():
+    """Test the string representation of a LintProblem with a rule id."""
+    problem = linter.LintProblem(1, 2, 'problem', 'rule-id')
+    assert str(problem) == '1:2: problem (rule-id)'

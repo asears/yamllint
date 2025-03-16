@@ -15,4 +15,12 @@
 
 import locale
 
+# Set the locale to C to ensure consistent output across different systems
+# (e.g. for error messages).
+# This is necessary because the locale is inherited from the environment
+# and can cause tests to fail if the output is different (e.g. due to
+# different decimal separators).
+# 'C' is a locale that is always available and should be understood by all
+# systems.  'C' is for the POSIX locale, which is the same as the 'en_US'
+# locale on some systems.
 locale.setlocale(locale.LC_ALL, 'C')
